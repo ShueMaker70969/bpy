@@ -1,0 +1,5 @@
+import bpy
+for i in range(len(bpy.context.object.modifiers)):
+    print(bpy.context.object.modifiers[i].name)
+    if bpy.context.object.modifiers[i].name == "Solidify":
+        print('has solidify')
