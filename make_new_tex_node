@@ -1,0 +1,20 @@
+import bpy
+def make_new_tex_node(image):
+    obj = bpy.context.active_object
+    if not obj:
+        print("No active object.")
+        return None
+    mat = obj.active_material
+    if not mat or not mat.use_nodes:
+        print("Object has no material with nodes.")
+        return None
+    nodes = mat.node_tree.nodes
+    new_tex = nodes.new('ShaderNodeTexImage')
+    new_tex.image = image
+    output_node = next((n for n in nodes if n.bl_idname == "ShaderNodeOutputMaterial"), None)
+    if output_node:
+        # Position the new node 300 pixels to the left of Material Output
+        new_tex.location = (output_node.location[0] - 300, output_node.location[1])
+
+image = bpy.data.images["test_tex"]
+make_new_tex_node(image)

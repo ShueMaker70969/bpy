@@ -1,0 +1,56 @@
+import bpy
+
+def get_mesh_objects_with_image_texture():
+    valid_objects = []
+
+    for obj in bpy.data.objects:
+        if obj.type != 'MESH':
+            continue
+
+        for slot in obj.material_slots:
+            mat = slot.material
+            if not mat or not mat.use_nodes:
+                continue
+
+            nodes = mat.node_tree.nodes
+            links = mat.node_tree.links
+
+            for node in nodes:
+                if node.type == 'BSDF_PRINCIPLED':
+                    for link in links:
+                        # Check if the link ends at the Base Color input of the Principled BSDF
+                        if (link.to_node == node and
+                            link.to_socket.name == 'Base Color' and
+                            link.from_node.type == 'TEX_IMAGE'):
+                            valid_objects.append(obj)
+                            break  # Stop checking this material once found
+
+    return list(set(valid_objects))  # remove duplicates
+
+
+def join_objects(objects):
+    if not objects:
+        print("No objects found with image textures connected to Base Color.")
+        return
+
+    # Make sure we're in object mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Deselect all objects
+    bpy.ops.object.select_all(action='DESELECT')
+
+    # Select the objects to join
+    for obj in objects:
+        obj.select_set(True)
+
+    # Set the active object (needed for joining)
+    bpy.context.view_layer.objects.active = objects[0]
+
+    # Join them
+    bpy.ops.object.join()
+    print(f"Joined {len(objects)} objects.")
+
+
+# Run the logic
+objects_to_join = get_mesh_objects_with_image_texture()
+join_objects(objects_to_join)
